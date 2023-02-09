@@ -42,6 +42,10 @@ const productSchema = mongoose.Schema(
       type: Object,
       default: {},
     },
+    soldCount: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

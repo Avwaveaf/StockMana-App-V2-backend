@@ -15,6 +15,12 @@ exports.createProduct = expressAsyncHandler(async (req, res) => {
 
     // manage file/image upload
     let fileData = {}
+    if (!req.file) {
+        fileData = {				"fileName": "",
+        "filePath": "https://via.placeholder.com/150",
+        "fileType": "image/jpeg",
+        "fileSize": ""}
+    }
     if (req.file) {
         let uploadedFile;
         try {
@@ -39,7 +45,8 @@ exports.createProduct = expressAsyncHandler(async (req, res) => {
         quantity,
         price,
         description,
-        imageUrl:fileData
+        imageUrl:fileData?fileData:"",
+ 
     })
 
     res.status(201).json({
@@ -127,7 +134,7 @@ exports.deleteManyProduct = expressAsyncHandler(async (req, res) => {
  
 // update product
 exports.updateProduct = expressAsyncHandler(async (req, res) => {
-    const { name, category, quantity, price, description } = req.body;
+    const { name, category, quantity, price, description,soldCount } = req.body;
 
     const productId = req.params.id
         const product = await Product.findById(productId)
@@ -168,6 +175,7 @@ exports.updateProduct = expressAsyncHandler(async (req, res) => {
         quantity,
         price,
         description,
+        soldCount,
         imageUrl:Object.keys(fileData).length ===0 ? product.imageUrl :fileData
     }, {
         new: true,
@@ -178,5 +186,45 @@ exports.updateProduct = expressAsyncHandler(async (req, res) => {
             success: true,
             message: "Product successfully added..",
             data: updatedProduct
+        })
+ })
+// update product sold
+exports.updateProductSold = expressAsyncHandler(async (req, res) => {
+    const { soldCount } = req.body;
+
+    const productId = req.params.id
+    const product = await Product.findById(productId)
+  
+
+    if (!product) { 
+        res.status(404)
+        throw new Error("No product found!")
+    }
+    if (!soldCount) {
+        res.status(400)
+        throw new Error("Please enter amount of item sold")
+     }
+
+    if (Number(soldCount) > product.quantity) {
+        res.status(400)
+        throw new Error("Sold out cannot greater than product quantity")
+     }
+    
+    if (product.userId.toString() !== req.user._id.toString()) { 
+        res.status(401)
+        throw new Error("You are not authorized to do this activity!")
+    }
+
+    product.quantity = Number(product.quantity) - soldCount;
+    product.soldCount = soldCount
+
+    //update product
+    product.save()
+
+
+        res.status(200).json({
+            success: true,
+            message: "Product successfully updated..",
+            data: product
         })
  })
