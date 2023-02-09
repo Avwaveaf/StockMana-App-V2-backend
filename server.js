@@ -18,7 +18,7 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors({
-  origin: true,
+  origin: ["https://stock-mana-app-v2.vercel.app"],
   credentials:true
 }))
 
